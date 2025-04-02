@@ -1,4 +1,5 @@
 ![HYBR Logo](https://hybrgroup.net/wp-content/uploads/2023/09/hybr-300x94.png)
+
 *Scaling Solutions*
 
 # Innovation Index Toolkit
