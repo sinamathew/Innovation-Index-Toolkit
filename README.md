@@ -10,8 +10,6 @@ innovation capabilities while providing HYBR with valuable insights.
 
 **Objectives**
 
-    ● Build a **dynamic web form** for users to answer innovation-related questions.
-
-    ● Develop a **scoring system** to calculate users’ innovation index scores.
-
-    ● Display results in an **interactive chart** (bar graph, radar chart, or any effective visualization).
+* Build a **dynamic web form** for users to answer innovation-related questions.
+* Develop a **scoring system** to calculate users’ innovation index scores.
+* Display results in an **interactive chart** (bar graph, radar chart, or any effective visualization).
