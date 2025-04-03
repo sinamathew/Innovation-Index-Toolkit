@@ -13,7 +13,30 @@ const QUESTIONS = [
     text: "How often does your team refine and reframe problems before jumping to solutions?",
     scale: "B",
   },
-  // Add all 8 questions following the same pattern
+  {
+    text: "How frequently does your organization involve diverse stakeholders in problem-identification processes?",
+    scale: "B",
+  },
+  {
+    text: "To what degree does your company encourage cross-functional collaboration when defining problems?",
+    scale: "B",
+  },
+  {
+    text: "How effectively does your organization engage with customers or end-users to understand their pain points?",
+    scale: "A",
+  },
+  {
+    text: "How often does your team conduct field research or ethnographic studies to observe problems firsthand?",
+    scale: "B",
+  },
+  {
+    text: "To what extent does your organization utilize data analytics to identify emerging challenges?",
+    scale: "B",
+  },
+  {
+    text: "How effectively does your company leverage customer feedback channels to spot potential problems?",
+    scale: "A",
+  },
 ];
 
 const SCALES = {
