@@ -3,6 +3,7 @@ import { Handlers, PageProps } from "$fresh/server.ts";
 import { Chart } from "https://esm.sh/chart.js@3.7.1";
 import { jsPDF } from "https://esm.sh/jspdf@2.4.0";
 
+// Define questions
 const questions = [
   "How effectively does your organization identify and articulate key business challenges?",
   "How often does your team refine and reframe problems before jumping to solutions?",
@@ -13,6 +14,26 @@ const questions = [
   "To what extent does your organization use data analytics to identify emerging issues or trends?",
   "How effectively does your company leverage customer feedback channels to spot potential problems?",
 ];
+
+// Define two sets of answers options 
+const answerOptionsA = [
+	"Very Poorly",
+	"Poorly",
+	"Neutral",
+	"Well",
+	"Execellently Well",
+];
+
+const answerOptionsB = [
+	"Not Likely",
+	"Slightly Likely",
+	"Neutral",
+	"Likely",
+	"Always",
+];
+
+// Map answer to the respective answer set (true = set A, false = set B)
+const questionSetMap = [true, false, false, false, true, false, false, true];
 
 export default function Home(props: PageProps) {
   // Using signals for state management
