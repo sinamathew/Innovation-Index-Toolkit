@@ -2,38 +2,7 @@ import { useSignal } from "@preact/signals";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { Chart } from "https://esm.sh/chart.js@3.7.1";
 import { jsPDF } from "https://esm.sh/jspdf@2.4.0";
-
-// Define questions
-const questions = [
-	"How effectively does your organization identify and articulate key business challenges?",
-	"How often does your team refine and reframe problems before jumping to solutions?",
-	"How frequently does your organization involve diverse stakeholders in problem-identification processes?",
-	"To what degree does your company encourage cross-functional collaboration when defining problems?",
-	"How effectively does your organization engage with customers or end-users to understand their pain points?",
-	"How often does your team conduct field research or ethnographic studies to observe problems firsthand?",
-	"To what extent does your organization use data analytics to identify emerging issues or trends?",
-	"How effectively does your company leverage customer feedback channels to spot potential problems?",
-];
-
-// Define two sets of answers options 
-const answerOptionsA = [
-	"Very Poorly",
-	"Poorly",
-	"Neutral",
-	"Well",
-	"Execellently Well",
-];
-
-const answerOptionsB = [
-	"Not Likely",
-	"Slightly Likely",
-	"Neutral",
-	"Likely",
-	"Always",
-];
-
-// Map answer to the respective answer set (true = set A, false = set B)
-const questionSetMap = [true, false, false, false, true, false, false, true];
+import { questions, answerOptionsA, answerOptionsB, questionSetMap } from "./LibQA.ts"
 
 
 
@@ -72,33 +41,36 @@ export default function Home(props: PageProps) {
 
   // Function to handle moving to the next question or displaying results
   const handleNext = () => {
+    
     // Get the selected radio button value
     const selectedAnswer = parseInt(
       (document.querySelector(
         `input[name="question-${currentQuestion.value}"]:checked`
       ) as HTMLInputElement)?.value
     );
+
     // Alert if no answer is selected
-    if (isNaN(selectedAnswer) && currentQuestion.value < questions.length) {
-      alert("Please select an answer");
+    if (isNaN(selectedAnswer)) {
+      alert("Please select an answer befor proceeding");
       return;
     }
 
-    // Update the answers signal and move to the next question or show results
+    // Store the answer
+    const updatedAnswers = [...answers.value];
+    updatedAnswers[currentQuestion.value] = selectedAnswer;
+    answers.value = updatedAnswers;
+
+    // Save to sessionStorage for persistence
+    sessionStorage.setItem("surveyAnswers", JSON.stringify(updatedAnswers));
+
+    // Move to the next question or show results
     if (currentQuestion.value < questions.length - 1) {
-      answers.value = [
-        ...answers.value.slice(0, currentQuestion.value),
-        selectedAnswer,
-      ];
       currentQuestion.value++;
     } else {
-      answers.value = [
-        ...answers.value.slice(0, currentQuestion.value),
-        selectedAnswer,
-      ];
       showResults.value = true;
     }
   };
+
 
   // Function to handle moving to the previous question
   const handlePrev = () => {
@@ -106,6 +78,8 @@ export default function Home(props: PageProps) {
       currentQuestion.value--;
     }
   };
+
+
 
   // Function to display the results chart and download button
   const displayResults = () => {
