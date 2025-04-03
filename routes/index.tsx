@@ -1,5 +1,6 @@
 // routes/index.tsx
-import { useSignal } from "@preact/signals";
+import { useSignal } from "https://esm.sh/@preact/signals@1.2.3";
+import { useEffect, useRef } from "preact/hooks";
 import { Chart } from "https://esm.sh/chart.js@4.4.0";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
 
@@ -48,9 +49,12 @@ export default function InnovationTool() {
   const currentStep = useSignal(0);
   const answers = useSignal<(number | undefined)[]>(Array(QUESTIONS.length).fill(undefined));
   const showResults = useSignal(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartInstance = useRef<Chart | null>(null);
 
   // Navigation handlers
   const handleNext = () => {
+    console.log("Current step:", currentStep.value, "Answer:", answers.value[currentStep.value]);
     if (answers.value[currentStep.value] === undefined) {
       alert("Please select an answer before continuing");
       return;
@@ -59,14 +63,19 @@ export default function InnovationTool() {
       currentStep.value++;
     } else {
       showResults.value = true;
+      console.log("Showing results:", answers.value);
     }
   };
 
-  const handlePrev = () => currentStep.value > 0 && currentStep.value--;
+  const handlePrev = () => {
+    if (currentStep.value > 0) {
+      currentStep.value--;
+    }
+  };
 
   // Score calculation
   const calculateScores = () => {
-    const total = answers.value.reduce((a, b) => a + b, 0);
+    const total = answers.value.reduce((sum, answer) => sum + (answer ?? 0), 0);
     const average = total / QUESTIONS.length;
     let category = "Beginner";
     if (average >= 3.5) category = "Advanced";
@@ -74,20 +83,39 @@ export default function InnovationTool() {
     return { total, average, category };
   };
 
-  // Chart rendering
-  const renderChart = (canvas: HTMLCanvasElement) => {
-    new Chart(canvas, {
-      type: "bar",
-      data: {
-        labels: QUESTIONS.map((_, i) => `Q${i + 1}`),
-        datasets: [{
-          label: "Innovation Scores",
-          data: answers.value,
-          backgroundColor: "#3B82F6",
-        }],
-      },
-      options: { responsive: true, maintainAspectRatio: false },
-    });
+  // Initialize the chart only once when results are shown
+  useEffect(() => {
+    if (showResults.value && canvasRef.current) {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+      chartInstance.current = new Chart(canvasRef.current, {
+        type: "bar",
+        data: {
+          labels: QUESTIONS.map((_, i) => `Q${i + 1}`),
+          datasets: [{
+            label: "Innovation Scores",
+            data: answers.value,
+            backgroundColor: "#3B82F6",
+          }],
+        },
+        options: { responsive: true, maintainAspectRatio: false },
+      });
+    }
+    return () => {
+      chartInstance.current?.destroy();
+      chartInstance.current = null;
+    };
+  }, [showResults.value]);
+
+  const scores = calculateScores();
+
+  // Handle radio button selection
+  const handleAnswerSelection = (value: number) => {
+    const newAnswers = [...answers.value];
+    newAnswers[currentStep.value] = value;
+    answers.value = newAnswers;
+    console.log("Updated answers:", newAnswers);
   };
 
   return (
@@ -103,7 +131,6 @@ export default function InnovationTool() {
         </h1>
       </header>
 
-      {/* Form */}
       {!showResults.value ? (
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="mb-6">
@@ -113,17 +140,13 @@ export default function InnovationTool() {
             <p class="mb-4">{QUESTIONS[currentStep.value].text}</p>
             <div class="space-y-2">
               {SCALES[QUESTIONS[currentStep.value].scale].map((label, i) => (
-                <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                <label key={i} class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                   <input
                     type="radio"
-                    name="answer"
+                    name={`answer-${currentStep.value}`}
                     value={i + 1}
                     checked={answers.value[currentStep.value] === i + 1}
-                    onChange={(e) => {
-                      const newAnswers = [...answers.value];
-                      newAnswers[currentStep.value] = parseInt(e.currentTarget.value);
-                      answers.value = newAnswers;
-                    }}
+                    onChange={() => handleAnswerSelection(i + 1)}
                     class="h-4 w-4 text-blue-600"
                   />
                   <span class="flex-1">
@@ -134,7 +157,6 @@ export default function InnovationTool() {
             </div>
           </div>
 
-          {/* Navigation */}
           <div class="flex justify-between">
             <button
               onClick={handlePrev}
@@ -152,16 +174,23 @@ export default function InnovationTool() {
           </div>
         </div>
       ) : (
-        /* Results */
         <div class="bg-white p-6 rounded-lg shadow-md">
           <h2 class="text-xl font-bold mb-4">Your Innovation Report</h2>
-          <div class="mb-6">
-            <canvas ref={renderChart} class="max-h-96"></canvas>
+          <div class="mb-4">
+            <p>Total Score: {scores.total}</p>
+            <p>Average Score: {scores.average.toFixed(2)}</p>
+            <p>Category: {scores.category}</p>
+          </div>
+          <div class="mb-6" style={{ height: "300px" }}>
+            <canvas ref={canvasRef} class="max-h-96"></canvas>
           </div>
           <button
             onClick={() => {
               const pdf = new jsPDF();
               pdf.text("Innovation Index Report", 10, 10);
+              pdf.text(`Total Score: ${scores.total}`, 10, 20);
+              pdf.text(`Average Score: ${scores.average.toFixed(2)}`, 10, 30);
+              pdf.text(`Category: ${scores.category}`, 10, 40);
               pdf.save("innovation-report.pdf");
             }}
             class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
