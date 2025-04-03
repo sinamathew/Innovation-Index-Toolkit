@@ -130,7 +130,7 @@ export default function Home(props: PageProps) {
       <link rel="stylesheet" href="/styles.css" />
       <div id="header">
         <img src="https://hybrgroup.net/wp-content/uploads/2023/09/hybr-300x94.png" alt="Logo" />
-        <h1>Survey Heading</h1>
+        <h1>Innovation Index Toolkit</h1>
       </div>
       {!showResults.value && (
         <>
