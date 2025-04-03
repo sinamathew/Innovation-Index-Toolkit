@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* styles.css */
+
+/* Global color palette:
+   - Primary: #4eed80 (green)
+   - Secondary: #6e87d4 (blue)
+   - White and Black for text and backgrounds
+*/
+
+/* Ensure html and body take up the full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main survey container stretches to full viewport height */
+#survey-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Optional: centers content vertically */
+}
+
+
+/* Header styles */
+#header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#header img {
+  max-width: 100px;
+}
+
+#header h1 {
+  color: #6e87d4;
+  font-weight: bold;
+}
+
+/* Question styles */
+.div-question label {
+  color: #6e87d4; /* Use blue for question labels */
+  display: block;
+  margin-bottom: 5px;
+}
+
+.div-question input {
+  margin-right: 5px;
+}
+
+/* Navigation container using flex to position buttons */
+#navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+/* Previous button on the left */
+.button-prev {
+  background-color: #6e87d4; /* Blue */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Next button on the right */
+.button-next {
+  background-color: #4eed80; /* Green */
+  color: black;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Disabled state for previous button */
+.button-prev:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Results container button styling */
+#results-container button {
+  background-color: #6e87d4;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
