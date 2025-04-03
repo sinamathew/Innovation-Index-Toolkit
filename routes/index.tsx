@@ -4,14 +4,14 @@ import { Chart } from "https://esm.sh/chart.js@3.7.1";
 import { jsPDF } from "https://esm.sh/jspdf@2.4.0";
 
 const questions = [
-  "Question 1?",
-  "Question 2?",
-  "Question 3?",
-  "Question 4?",
-  "Question 5?",
-  "Question 6?",
-  "Question 7?",
-  "Question 8?",
+  "How effectively does your organization identify and articulate key business challenges?",
+  "How often does your team refine and reframe problems before jumping to solutions?",
+  "How frequently does your organization involve diverse stakeholders in problem-identification processes?",
+  "To what degree does your company encourage cross-functional collaboration when defining problems?",
+  "How effectively does your organization engage with customers or end-users to understand their pain points?",
+  "How often does your team conduct field research or ethnographic studies to observe problems firsthand?",
+  "To what extent does your organization use data analytics to identify emerging issues or trends?",
+  "How effectively does your company leverage customer feedback channels to spot potential problems?",
 ];
 
 export default function Home(props: PageProps) {
