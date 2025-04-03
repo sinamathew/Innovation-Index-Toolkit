@@ -1,161 +1,152 @@
+// routes/index.tsx
 import { useSignal } from "@preact/signals";
-import { Handlers, PageProps } from "$fresh/server.ts";
-import { Chart } from "https://esm.sh/chart.js@3.7.1";
-import { jsPDF } from "https://esm.sh/jspdf@2.4.0";
-import { questions, answerOptionsA, answerOptionsB, questionSetMap } from "./LibQA.ts"
+import { Chart } from "https://esm.sh/chart.js@4.4.0";
+import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
 
+// Question configuration
+const QUESTIONS = [
+  {
+    text: "How effectively does your organization identify and articulate key business challenges?",
+    scale: "A",
+  },
+  {
+    text: "How often does your team refine and reframe problems before jumping to solutions?",
+    scale: "B",
+  },
+  // Add all 8 questions following the same pattern
+];
 
+const SCALES = {
+  A: ["Very Poorly", "Poorly", "Neutral", "Well", "Excellently Well"],
+  B: ["Not Likely", "Slightly Likely", "Neutral", "Likely", "Always"],
+};
 
-export default function Home(props: PageProps) {
+export default function InnovationTool() {
+  const currentStep = useSignal(0);
+  const answers = useSignal<(number | undefined)[]>(Array(QUESTIONS.length).fill(undefined));
+  const showResults = useSignal(false);
 
-	// Using signals for state management
-	const currentQuestion = useSignal(0);
-	const answers = useSignal<number[]>([]);
-	const showResults = useSignal(false);
-
-	// Function to display a single question with radio options
-	const displayQuestion = (index: number) => {
-
-		//Choose the correct set
-		const options = questionSetMap[index] ?answerOptionsA : answerOptionsB;
-
-		return (
-			<div class="div-question">
-				<label>{questions[index]}</label>
-				{options.map((label, i) => {
-					const value = i + 1; // Numeric value from 1 to 5
-					return (<>
-						<input
-							type="radio"
-							name={`question-${index}`}
-							value={value}
-							id={`q${index}-option${value}`}
-							checked={answers.value[index] === value}
-						/>
-						<label htmlFor={`q${index}-option${value}`}>{label}</label>
-					</>);
-				})}
-			</div>
-		);
-	};
-
-  // Function to handle moving to the next question or displaying results
+  // Navigation handlers
   const handleNext = () => {
-    
-    // Get the selected radio button value
-    const selectedAnswer = parseInt(
-      (document.querySelector(
-        `input[name="question-${currentQuestion.value}"]:checked`
-      ) as HTMLInputElement)?.value
-    );
-
-    // Alert if no answer is selected
-    if (isNaN(selectedAnswer)) {
-      alert("Please select an answer befor proceeding");
+    if (answers.value[currentStep.value] === undefined) {
+      alert("Please select an answer before continuing");
       return;
     }
-
-    // Store the answer
-    const updatedAnswers = [...answers.value];
-    updatedAnswers[currentQuestion.value] = selectedAnswer;
-    answers.value = updatedAnswers;
-
-    // Save to sessionStorage for persistence
-    sessionStorage.setItem("surveyAnswers", JSON.stringify(updatedAnswers));
-
-    // Move to the next question or show results
-    if (currentQuestion.value < questions.length - 1) {
-      currentQuestion.value++;
+    if (currentStep.value < QUESTIONS.length - 1) {
+      currentStep.value++;
     } else {
       showResults.value = true;
     }
   };
 
+  const handlePrev = () => currentStep.value > 0 && currentStep.value--;
 
-  // Function to handle moving to the previous question
-  const handlePrev = () => {
-    if (currentQuestion.value > 0) {
-      currentQuestion.value--;
-    }
+  // Score calculation
+  const calculateScores = () => {
+    const total = answers.value.reduce((a, b) => a + b, 0);
+    const average = total / QUESTIONS.length;
+    let category = "Beginner";
+    if (average >= 3.5) category = "Advanced";
+    else if (average >= 2.5) category = "Intermediate";
+    return { total, average, category };
   };
 
-
-
-  // Function to display the results chart and download button
-  const displayResults = () => {
-    // Count the occurrences of each answer
-    const counts = [0, 0, 0, 0, 0];
-    answers.value.forEach((answer) => counts[answer - 1]++);
-
-    // Create a canvas element for the chart
-    const canvas = document.createElement("canvas");
-    // Initialize Chart.js with the counts
-    new Chart(canvas.getContext("2d")!, {
+  // Chart rendering
+  const renderChart = (canvas: HTMLCanvasElement) => {
+    new Chart(canvas, {
       type: "bar",
       data: {
-        labels: ["1", "2", "3", "4", "5"],
+        labels: QUESTIONS.map((_, i) => `Q${i + 1}`),
         datasets: [{
-          label: "Response Distribution",
-          data: counts,
-          backgroundColor: "#4eed80",
-          borderColor: "#6e87d4",
-          borderWidth: 1,
+          label: "Innovation Scores",
+          data: answers.value,
+          backgroundColor: "#3B82F6",
         }],
       },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
-        },
-      },
+      options: { responsive: true, maintainAspectRatio: false },
     });
-
-    // Function to download the chart as a PDF
-    const downloadPdf = () => {
-      const canvasImg = canvas.toDataURL("image/png", 1.0);
-      const pdf = new jsPDF();
-      pdf.addImage(canvasImg, "PNG", 15, 15, 180, 100);
-      pdf.save("survey-results.pdf");
-    };
-
-    return (
-      <div id="results-container">
-        {canvas}
-        <button onClick={downloadPdf}>Download PDF Report</button>
-      </div>
-    );
   };
 
   return (
-    <div id="survey-container">
-      {/* Include the external stylesheet */}
-      <link rel="stylesheet" href="/styles.css" />
-      <div id="header">
-        <img src="https://hybrgroup.net/wp-content/uploads/2023/09/hybr-300x94.png" alt="Logo" />
-        <h1>Innovation Index Toolkit</h1>
-      </div>
-      {!showResults.value && (
-        <>
-          <div id="question-container">
-            {displayQuestion(currentQuestion.value)}
+    <div class="max-w-4xl mx-auto p-4">
+      {/* Header */}
+      <header class="text-center mb-8">
+        <img
+          src="https://hybrgroup.net/wp-content/uploads/2023/09/hybr-300x94.png"
+          class="h-16 mx-auto mb-4"
+        />
+        <h1 class="text-2xl font-bold text-gray-800">
+          Innovation Index Toolkit
+        </h1>
+      </header>
+
+      {/* Form */}
+      {!showResults.value ? (
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">
+              Question {currentStep.value + 1}/{QUESTIONS.length}
+            </h2>
+            <p class="mb-4">{QUESTIONS[currentStep.value].text}</p>
+            <div class="space-y-2">
+              {SCALES[QUESTIONS[currentStep.value].scale].map((label, i) => (
+                <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                  <input
+                    type="radio"
+                    name="answer"
+                    value={i + 1}
+                    checked={answers.value[currentStep.value] === i + 1}
+                    onChange={(e) => {
+                      const newAnswers = [...answers.value];
+                      newAnswers[currentStep.value] = parseInt(e.currentTarget.value);
+                      answers.value = newAnswers;
+                    }}
+                    class="h-4 w-4 text-blue-600"
+                  />
+                  <span class="flex-1">
+                    {i + 1} - {label}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
-          <div id="navigation">
+
+          {/* Navigation */}
+          <div class="flex justify-between">
             <button
-              class="button-prev"
-              disabled={currentQuestion.value === 0}
               onClick={handlePrev}
+              disabled={currentStep.value === 0}
+              class="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
             >
               Previous
             </button>
-            <button class="button-next" onClick={handleNext}>
-              {currentQuestion.value === questions.length - 1 ? "Submit" : "Next"}
+            <button
+              onClick={handleNext}
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              {currentStep.value === QUESTIONS.length - 1 ? "Submit" : "Next"}
             </button>
           </div>
-        </>
+        </div>
+      ) : (
+        /* Results */
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-bold mb-4">Your Innovation Report</h2>
+          <div class="mb-6">
+            <canvas ref={renderChart} class="max-h-96"></canvas>
+          </div>
+          <button
+            onClick={() => {
+              const pdf = new jsPDF();
+              pdf.text("Innovation Index Report", 10, 10);
+              pdf.save("innovation-report.pdf");
+            }}
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Download PDF Report
+          </button>
+        </div>
       )}
-      {showResults.value && displayResults()}
     </div>
   );
 }
-
